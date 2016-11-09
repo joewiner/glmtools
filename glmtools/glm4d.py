@@ -26,8 +26,14 @@ def glm_4d(Y, X):
     df : int
         degrees of freedom due to error.
     """
-    # +++your code here+++
-    return
+    N = len(x)
+    B = npl.pinv(X).dot(Y)
+    E = Y - X.dot(B)
+
+    c = np.array([0, 1])
+    df = N - npl.matrix_rank(X)
+    sigma_2 = np.sum(E ** 2) / df
+    return B, sigma_2, df
 
 
 def t_test_3d(c, X, B, sigma_2, df):
@@ -54,4 +60,4 @@ def t_test_3d(c, X, B, sigma_2, df):
         two-tailed probability value for each t statistic.
     """
     # Your code code here
-    return
+    return t, p

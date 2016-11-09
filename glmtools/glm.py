@@ -3,8 +3,7 @@
 
 import numpy as np
 import numpy.linalg as npl
-
-
+import scipy.stats
 
 def glm(Y, X):
     """ Run GLM on on data `Y` and design `X`
@@ -26,9 +25,14 @@ def glm(Y, X):
     df : int
         degrees of freedom due to error.
     """
-    # +++your code here+++
-    return
+    N = len(X)
+    B = npl.pinv(X).dot(Y)
+    E = Y - X.dot(B)
 
+    df = N - npl.matrix_rank(X)
+    sigma_2 = np.sum(E ** 2) / df
+
+    return B, sigma_2, df
 
 def t_test(c, X, B, sigma_2, df):
     """ Two-tailed t-test given contrast `c`, design `X`
@@ -53,5 +57,19 @@ def t_test(c, X, B, sigma_2, df):
     p : array shape (V,)
         two-tailed probability value for each t statistic.
     """
-    # Your code code here
-    return
+
+    #get t statistic
+    c_b_cov = c.dot(npl.pinv(X.T.dot(X))).dot(c)
+    t = c.dot(B) / np.sqrt(sigma_2 * c_b_cov)
+
+    #get two-tailed p-value for t statistic
+    t_dist = scipy.stats.t(df=df)
+    p = 2*(1 - t_dist.cdf(t))
+    return t, p
+
+def test_glm_t_test(Y):
+    """ needs to be tested with Y matrix that has 2 groups of 10
+    """
+    res = scipy.stats.ttest_ind(Y[:10], Y[10:])
+    glm(Y,X)
+    t,p = t_test(c, X, B, sigma_2, df)
