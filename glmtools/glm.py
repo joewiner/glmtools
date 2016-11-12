@@ -1,8 +1,10 @@
 """ Functions for running GLM on 2D and 3D data
 """
-
 import numpy as np
 import numpy.linalg as npl
+import matplotlib.pyplot as plt
+# Print array values to 4 decimal places
+np.set_printoptions(precision=4)
 import scipy.stats
 
 def glm(Y, X):
@@ -64,12 +66,27 @@ def t_test(c, X, B, sigma_2, df):
 
     #get two-tailed p-value for t statistic
     t_dist = scipy.stats.t(df=df)
-    p = 2*(1 - t_dist.cdf(t))
+    if t > 0:
+        p = 2 * (1 - t_dist.cdf(t))
+    else:
+        p = 2 * (t_dist.cdf(t))
     return t, p
 
-def test_glm_t_test(Y):
+def test_glm_t_test():
     """ needs to be tested with Y matrix that has 2 groups of 10
     """
-    res = scipy.stats.ttest_ind(Y[:10], Y[10:])
-    glm(Y,X)
-    t,p = t_test(c, X, B, sigma_2, df)
+    #generate fake data to test functions
+    n = 20
+    x = np.random.normal(10, 2, size=n)
+    X = np.ones((n, 2))
+    X[:, 1] = x
+    Y = np.random.normal(20, 1, size=n)
+
+    B, sigma_2, df = glm(Y,X)
+    c = np.array([0, 1])
+    t, p = t_test(c, X, B, sigma_2, df)
+
+    #res = scipy.stats.ttest_ind(Y[:10], Y[10:])
+    res = scipy.stats.linregress(x, Y)
+
+    return np.allclose(p, res.pvalue)
