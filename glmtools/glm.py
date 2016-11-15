@@ -32,7 +32,9 @@ def glm(Y, X):
     E = Y - X.dot(B)
 
     df = N - npl.matrix_rank(X)
-    sigma_2 = np.sum(E ** 2) / df
+
+    E_sq = E ** 2
+    sigma_2 = np.sum(E_sq, axis=0) / df
 
     return B, sigma_2, df
 
@@ -86,7 +88,6 @@ def test_glm_t_test():
     c = np.array([0, 1])
     t, p = t_test(c, X, B, sigma_2, df)
 
-    #res = scipy.stats.ttest_ind(Y[:10], Y[10:])
     res = scipy.stats.linregress(x, Y)
 
     return np.allclose(p, res.pvalue)

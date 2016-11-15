@@ -2,8 +2,12 @@
 """
 
 import numpy as np
-
-from .glm import glm, t_test
+import numpy.linalg as npl
+import matplotlib.pyplot as plt
+# Print array values to 4 decimal places
+np.set_printoptions(precision=4)
+import scipy.stats
+from glm import glm, t_test
 
 
 def glm_4d(Y, X):
@@ -26,14 +30,15 @@ def glm_4d(Y, X):
     df : int
         degrees of freedom due to error.
     """
-    N = len(x)
-    B = npl.pinv(X).dot(Y)
-    E = Y - X.dot(B)
+    #reshape for glm function
+    Y_2D = Y.reshape(-1, Y.shape[-1]).T
+    #plug in to glm
+    B, sigma_2, df = glm(Y_2D, X)
+    #reshape B and sigma_2
+    B_4D = B.reshape(Y.shape[0],Y.shape[1],Y.shape[2],X.shape[1])
+    sigma_2_3D = sigma_2.reshape(Y.shape[0],Y.shape[1],Y.shape[2])
 
-    c = np.array([0, 1])
-    df = N - npl.matrix_rank(X)
-    sigma_2 = np.sum(E ** 2) / df
-    return B, sigma_2, df
+    return B_4D, sigma_2_3D, df
 
 
 def t_test_3d(c, X, B, sigma_2, df):
@@ -59,5 +64,32 @@ def t_test_3d(c, X, B, sigma_2, df):
     p : array shape (V,)
         two-tailed probability value for each t statistic.
     """
-    # Your code code here
-    return t, p
+    #reshape for t-test loop
+    B_2D = B.reshape(-1, B.shape[-1]).T
+    sigma_2_1D = sigma_2.reshape(np.prod(sigma_2.shape))
+    #loop through every voxel
+    for i in range(np.prod(sigma_2.shape)):
+        t, p = t_test(c, X[:,i], B_2D[:,i], sigma_2[i], df)
+        t_array[i] = t
+        p_vec[i] = p
+    #reshape
+    t_3D = t_array.reshape(Y.shape[0],Y.shape[1],Y.shape[2])
+
+    return t_3D, p_vec
+
+def test_glm4d_t_test3d():
+    #generate fake data to test functions
+    n = 20
+    x = np.random.normal(10, 2, size=n**3)
+    X = np.ones((n**3, n))
+    X[:, 1] = x
+    X = X.T
+    Y = np.random.normal(20, 1, size=(n,n,n,n))
+
+    B, sigma_2, df = glm_4d(Y,X)
+    c = np.ones(n**3)
+    t, p = t_test_3d(c, X, B, sigma_2, df)
+
+    res = scipy.stats.linregress(x, Y)
+
+    return np.allclose(p, res.pvalue)
