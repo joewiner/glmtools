@@ -68,14 +68,16 @@ def t_test_3d(c, X, B, sigma_2, df):
     B_2D = B.reshape(-1, B.shape[-1]).T
     sigma_2_1D = sigma_2.reshape(np.prod(sigma_2.shape))
     #loop through every voxel
-    for i in range(np.prod(sigma_2.shape)):
-        t, p = t_test(c, X[:,i], B_2D[:,i], sigma_2[i], df)
-        t_array[i] = t
-        p_vec[i] = p
+    #for i in range(np.prod(sigma_2.shape)):
+    #    t, p = t_test(c, X[:,i], B_2D[:,i], sigma_2[i], df)
+    #    t_array[i] = t
+    #    p_vec[i] = p
+    t, p = t_test(c, X, B_2D, sigma_2_1D, df)
     #reshape
-    t_3D = t_array.reshape(Y.shape[0],Y.shape[1],Y.shape[2])
+    t_3D = t.reshape(Y.shape[0],Y.shape[1],Y.shape[2])
+    p_3D = p.reshape(Y.shape[0],Y.shape[1],Y.shape[2])
 
-    return t_3D, p_vec
+    return t_3D, p_3D
 
 def test_glm4d_t_test3d():
     #generate fake data to test functions
