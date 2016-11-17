@@ -3,7 +3,7 @@
 
 import numpy as np
 import numpy.linalg as npl
-from glm import glm, t_test
+from .glm import glm, t_test
 
 
 def glm_4d(Y, X):
